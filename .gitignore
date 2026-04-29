@@ -1,6 +1,9 @@
 # IntelliJ / Jetbrains
 .idea/
 
+# Gradle configs
+.gradle/
+
 # Compiled class file
 *.class
 
