@@ -1,0 +1,13 @@
+[versions]
+# Mirror OmniFret's tooling so dependency conflicts are zero on the
+# consumer side. Bumping versions here means bumping in OmniFret too.
+agp = "9.2.0"
+kotlin = "2.2.10"
+coroutines = "1.8.1"
+
+[libraries]
+kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }
+
+[plugins]
+android-library = { id = "com.android.library", version.ref = "agp" }
+kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
