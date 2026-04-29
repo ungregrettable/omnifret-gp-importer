@@ -1,33 +1,47 @@
-# IntelliJ / Jetbrains
+# --- IDE / OS noise ---
 .idea/
+.vscode/
+*.iml
+.DS_Store
 
-# Gradle configs
+# --- Gradle build cache & outputs ---
 .gradle/
+**/build/
+out/
 
-# Compiled class file
+# --- Kotlin compiler caches ---
+.kotlin/
+
+# --- Local-only Gradle configuration ---
+# Contains absolute paths and signing creds; never commit.
+local.properties
+
+# --- Compiled / bundled artifacts ---
 *.class
-
-# Log file
-*.log
-
-# BlueJ files
-*.ctxt
-
-# Mobile Tools for Java (J2ME)
-.mtj.tmp/
-
-# Package Files #
 *.jar
 *.war
 *.nar
 *.ear
+*.aar
+*.apk
+*.dex
 *.zip
 *.tar.gz
 *.rar
 
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+# Gradle wrapper jar bootstraps `./gradlew` on fresh clones; commit it.
+!gradle/wrapper/gradle-wrapper.jar
+
+# --- Native iOS build outputs ---
+*.xcframework/
+*.framework/
+DerivedData/
+
+# --- JVM crash logs ---
 hs_err_pid*
 replay_pid*
 
-# Kotlin Gradle plugin data, see https://kotlinlang.org/docs/whatsnew20.html#new-directory-for-kotlin-data-in-gradle-projects
-.kotlin/
+# --- Misc Java tooling ---
+*.log
+*.ctxt
+.mtj.tmp/
