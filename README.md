@@ -11,15 +11,15 @@ OmniFret can ship the binary while satisfying alphaTab's license terms.
 
 ## Status
 
-| Component | Status |
-|---|---|
-| Score parsing (GP3-5, GP7-8, GPX, MusicXML, Capella, AlphaTex) | ✅ Working |
-| Score domain model | ✅ Working |
-| Playback event generation (note-on/off, tempo, control changes) | ✅ Working |
-| SVG rendering (CssFontSvg engine) | ✅ Working |
-| Compose Canvas / Core Graphics native rendering | ⏳ Future work |
+| Component | Status                                             |
+|---|----------------------------------------------------|
+| Score parsing (GP3-5, GP7-8, GPX, MusicXML, Capella, AlphaTex) | ✅ Working                                          |
+| Score domain model | ✅ Working                                          |
+| Playback event generation (note-on/off, tempo, control changes) | ✅ Working                                          |
+| SVG rendering (CssFontSvg engine) | ✅ Working                                          |
+| Compose Canvas / Core Graphics native rendering | ⏳ Future work                                      |
 | Android AAR | ✅ `gplayer/build/outputs/aar/notation-release.aar` |
-| iOS XCFramework | ⚠️ Compiles to klib; binary linking requires full Xcode |
+| iOS XCFramework | ⚠️ Compiles to klib; not fully tested yet          |
 
 ## Public API
 
@@ -49,7 +49,7 @@ PlaybackBuilder(score).generate(object : PlaybackEventListener {
 })
 ```
 
-## Integration into OmniFret
+## Integration into Android
 
 ### Android (`:app` module)
 
