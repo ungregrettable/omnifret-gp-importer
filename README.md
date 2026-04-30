@@ -64,8 +64,6 @@ dependencies {
 }
 ```
 
-Wire `PlaybackEventListener.onNote` to OmniFret's existing `AudioEngine.playNote(midi, durationSec)` (see `~/dev/OmniFret/app/src/main/java/com/omnifret/music/Audio.kt`). The Karplus-Strong synth in `commonMain/.../AudioDsp.kt` is the underlying voice.
-
 ### iOS (`iosApp`)
 
 ```bash
