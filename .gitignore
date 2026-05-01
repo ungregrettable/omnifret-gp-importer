@@ -51,3 +51,5 @@ replay_pid*
 # syncOmnifretAndroidTestResources Gradle task so AGP's unit-test
 # resource pipeline picks up the binary fixtures.
 gplayer/src/androidUnitTest/resources/
+# Same pattern for the raster sibling module.
+gplayer-raster-skiko/src/androidUnitTest/resources/

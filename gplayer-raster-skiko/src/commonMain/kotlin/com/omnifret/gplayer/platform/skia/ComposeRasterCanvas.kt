@@ -232,10 +232,24 @@ internal class ComposeRasterCanvas(
         // SMuFL glyphs are addressed by their codepoint values. The
         // renderer passes the codepoint as the enum's int value.
         val text = codePointToString(symbol.value)
-        val effectiveSize = font.size * relativeScale
-        val glyphFont = GplayerFont(font.family, effectiveSize, font.style)
+        // Music glyphs are sized off EngravingSettings.musicFontSize (36 px
+        // on Bravura defaults), NOT canvas.font.size — the latter is
+        // whatever the engraving layer last set for text rendering (Arial
+        // 10 px by default; MusicFontGlyph.paint never sets it). Mirrors
+        // CssFontSvgCanvas, which relies on the SVG consumer's
+        // `.at { font-size: 36px }` baseline to render glyphs at the
+        // correct size relative to the staff.
+        val baseSize = settings.display.resources.engravingSettings.musicFontSize
+        val glyphFont = GplayerFont(font.family, baseSize * relativeScale, font.style)
         val align = if (centerAtPosition == true) TextAlign.Center else textAlign
-        textSupport.drawText(c, text, x, y, glyphFont, color, align, textBaseline, isMusicFont = true)
+        // Music glyphs always render with y as the alphabetic baseline.
+        // CssFontSvgCanvas emits `<text>` with no `dominant-baseline`
+        // (defaults to alphabetic), so the engraving layer's y values for
+        // music symbols are baseline-relative — independent of the
+        // `textBaseline` state used for regular text. Honoring the
+        // current `textBaseline` (Top by default) instead would draw
+        // glyphs ~`ascent` px lower than the staff expects.
+        textSupport.drawText(c, text, x, y, glyphFont, color, align, TextBaseline.Alphabetic, isMusicFont = true)
     }
 
     override fun fillMusicFontSymbols(
@@ -250,10 +264,10 @@ internal class ComposeRasterCanvas(
             }
         }
         if (sb.isEmpty()) return
-        val effectiveSize = font.size * relativeScale
-        val glyphFont = GplayerFont(font.family, effectiveSize, font.style)
+        val baseSize = settings.display.resources.engravingSettings.musicFontSize
+        val glyphFont = GplayerFont(font.family, baseSize * relativeScale, font.style)
         val align = if (centerAtPosition == true) TextAlign.Center else textAlign
-        textSupport.drawText(c, sb.toString(), x, y, glyphFont, color, align, textBaseline, isMusicFont = true)
+        textSupport.drawText(c, sb.toString(), x, y, glyphFont, color, align, TextBaseline.Alphabetic, isMusicFont = true)
     }
 
     // ---- Transforms (only beginRotate/endRotate; no arbitrary matrices)

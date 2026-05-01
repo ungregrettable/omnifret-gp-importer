@@ -192,4 +192,29 @@ class RasterRenderStructuralTest {
             "first chunk has too few non-zero pixels: $nonBlankCount/$totalPixels (ratio=$ratio)",
         )
     }
+
+    @Test
+    fun music_glyphs_render_at_engraving_size_not_default_text_size() {
+        // Regression: prior to fixing ComposeRasterCanvas, music-font
+        // glyphs were sized off `canvas.font.size` (Arial 10 px default)
+        // instead of EngravingSettings.musicFontSize (36 px on Bravura
+        // defaults). Note heads, clef, time signature, and key-signature
+        // accidentals rendered ~3.6× too small; strokes (stems, beams,
+        // staff lines) and tab numbers were unaffected. Total non-blank
+        // pixel count alone won't catch it — the existing 0.5% smoke
+        // floor is satisfied even with tiny glyphs. Assert a tighter
+        // floor that fails when glyphs collapse to text-default size.
+        val score = parseRasterFixture("guitarpro5/notes.gp5")
+        val result = ScoreRasterRenderer(score, bravuraBytes).render()
+        val first = result.chunks.first()
+        val nonBlankCount = first.pixels.count { it != 0 }
+        val totalPixels = first.pixels.size
+        val ratio = nonBlankCount.toDouble() / totalPixels
+        assertTrue(
+            ratio > 0.02,
+            "first chunk ratio=$ratio ($nonBlankCount/$totalPixels) is below " +
+                "2% — music glyphs are likely rendering at default text size " +
+                "instead of EngravingSettings.musicFontSize",
+        )
+    }
 }
