@@ -32,8 +32,19 @@ internal actual class PlatformTextSupport actual constructor(musicFontBytes: Byt
         FontMgr.default.makeFromData(Data.makeFromBytes(musicFontBytes))
             ?: error("FontMgr.default.makeFromData returned null for the supplied music font bytes")
 
+    // FontMgr.default.matchFamilyStyle(null, ...) returns null on Skiko/iOS
+    // (the iOS FontMgr doesn't expose system fonts via family enumeration).
+    // Fall back to the music typeface there means tab fret numbers etc.
+    // get rendered with Bravura, whose ASCII digit slots are empty — they
+    // disappear visually. Try a series of named iOS system fonts first;
+    // matchFamilyStyle with an explicit family name DOES work even when
+    // the null-family enumeration doesn't.
     private val fallbackTypeface: Typeface =
-        FontMgr.default.matchFamilyStyle(null, SkiaFontStyle.NORMAL) ?: musicTypeface
+        FontMgr.default.matchFamilyStyle("Helvetica", SkiaFontStyle.NORMAL)
+            ?: FontMgr.default.matchFamilyStyle("HelveticaNeue", SkiaFontStyle.NORMAL)
+            ?: FontMgr.default.matchFamilyStyle("Arial", SkiaFontStyle.NORMAL)
+            ?: FontMgr.default.matchFamilyStyle(null, SkiaFontStyle.NORMAL)
+            ?: musicTypeface
 
     actual fun drawText(
         canvas: Canvas,
