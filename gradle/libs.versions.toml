@@ -2,12 +2,13 @@
 # Mirror OmniFret's tooling so dependency conflicts are zero on the
 # consumer side. Bumping versions here means bumping in OmniFret too.
 agp = "9.2.0"
-kotlin = "2.2.10"
+kotlin = "2.3.21"
 coroutines = "1.8.1"
 # Match OmniFret's Compose Multiplatform version. The :gplayer-raster-skiko
 # module uses Compose MP UI Graphics (Skia-backed on iOS via skiko, native
-# Canvas on Android) for cross-platform raster rendering.
-compose = "1.10.0"
+# Canvas on Android) for cross-platform raster rendering. CMP 1.11+ also
+# requires Kotlin 2.3+ — keep both bumps in lock-step.
+compose = "1.11.0-beta03"
 
 [libraries]
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }

@@ -81,7 +81,10 @@ kotlin {
         }
     }
 
-    listOf(iosArm64(), iosSimulatorArm64(), iosX64()).forEach { target ->
+    // iosX64 (Intel iOS simulator) was dropped when we moved to CMP
+    // 1.11+: JetBrains stopped publishing iosX64 artifacts and all
+    // current Macs run arm64 simulators.
+    listOf(iosArm64(), iosSimulatorArm64()).forEach { target ->
         target.binaries.framework {
             baseName = "OmniFretGplayer"
             isStatic = true
