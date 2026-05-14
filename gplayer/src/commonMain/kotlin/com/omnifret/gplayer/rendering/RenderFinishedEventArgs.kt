@@ -121,6 +121,29 @@ public class RenderFinishedEventArgs
     public var barXOffsets: Map<Int, Double>? = null
 
 
+    // KMP-PORT: every engraved beat's `(absoluteDisplayStart, x)` pair
+    // inside this chunk, sorted ascending by tick. The x coordinate
+    // shares the [barXOffsets] frame (scaled CSS px in the chunk's
+    // canvas). Lets raster consumers place a playhead by audio tick:
+    // bracket the current tick in this list and interpolate piecewise-
+    // linearly between the two neighbouring engraved positions.
+    // Treating the chunk as a single beat sequence (rather than per-bar
+    // sub-lists with implicit bar-line anchors) eliminates the
+    // bar-boundary "teleport" that a per-bar model produces — gplayer
+    // engraves the first beat of a bar a few px right of the bar line,
+    // so any anchor at the bar line would force a sub-bar jump as the
+    // playhead crossed the line.
+    //
+    // x is the beat's `OnNotes` position (just left of the notehead,
+    // after any accidentals) — matches when the audio engine triggers
+    // the note attack, so the visual playhead lands on the notehead at
+    // play time.
+    //
+    // Empty list when the chunk has no beats; null when the layout
+    // doesn't supply per-beat positions.
+    public var beatXOffsets: List<DoubleArray>? = null
+
+
     public constructor()
 }
 

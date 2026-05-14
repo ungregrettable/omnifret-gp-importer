@@ -185,6 +185,7 @@ internal class HorizontalScreenLayout: com.omnifret.gplayer.rendering.layout.Sco
                 val staffId = this._system!!.allStaves[(0).toInt()].staffId
                 val boundsLookup = this.renderer.boundsLookup
                 val offsets = HashMap<Int, Double>()
+                val beatOffsets = ArrayList<DoubleArray>()
                 for (barIdx in firstBarIdx..lastBarIdx) {
                     val bar = track.staves[(0).toInt()].bars[(barIdx).toInt()]
                     val barRenderer = this.getRendererForBar(staffId, bar)!!
@@ -213,8 +214,43 @@ internal class HorizontalScreenLayout: com.omnifret.gplayer.rendering.layout.Sco
                             barRenderer.x - firstBarStaffX + barRenderer.beatGlyphsStart
                     }
                     offsets[barIdx] = canvasX * displayScale
+
+                    // Per-beat positions. Use `OnNotes` (the post-
+                    // accidental, pre-notehead anchor) so the engraved
+                    // x matches when the audio engine attacks the note.
+                    // Each beat's chunk-canvas x = canvasX + (getBeatX
+                    // - beatGlyphsStart). Beats accumulate into the
+                    // chunk-global list; sorted ascending by tick once
+                    // the bar loop finishes.
+                    if (bar.voices.length > 0) {
+                        val voice = bar.voices[(0).toInt()]
+                        for (bi in 0 until voice.beats.length.toInt()) {
+                            val beat = voice.beats[(bi).toInt()]
+                            val tick = beat.absoluteDisplayStart
+                            val beatLocalX = barRenderer.getBeatX(
+                                beat,
+                                com.omnifret.gplayer.rendering.BeatXPosition.OnNotes,
+                                false,
+                            )
+                            val beatCanvasX = canvasX + (beatLocalX - barRenderer.beatGlyphsStart)
+                            beatOffsets.add(doubleArrayOf(tick, beatCanvasX * displayScale))
+                        }
+                    }
+                }
+                beatOffsets.sortBy { it[(0).toInt()] }
+                // Trailing anchor at the partial's right edge so the
+                // playhead glides forward during the final note's
+                // duration rather than parking at the last engraved
+                // beat. tick = end of the last bar's playback; x =
+                // partial width.
+                if (lastBarIdx >= firstBarIdx) {
+                    val lastBar = track.staves[(0).toInt()].bars[(lastBarIdx).toInt()]
+                    val lastBarEndTick = lastBar.masterBar.start +
+                        lastBar.masterBar.calculateDuration(true)
+                    beatOffsets.add(doubleArrayOf(lastBarEndTick, e.width))
                 }
                 e.barXOffsets = offsets
+                e.beatXOffsets = beatOffsets
                 this.registerPartial(e, fun(canvas: com.omnifret.gplayer.platform.ICanvas): Unit{
                     var renderX: Double = this._system!!.getBarX(partial.masterBars[(0).toInt()].index) + this._system!!.accoladeWidth
                     if (partialIndex == 0.0)

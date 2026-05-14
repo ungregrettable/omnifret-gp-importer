@@ -52,6 +52,20 @@ public data class ScoreRasterChunk(
     val firstBarIndex: Int,
     val lastBarIndex: Int,
     val barXOffsets: Map<Int, Float>,
+    /**
+     * Every engraved beat's `(absoluteTick, x)` pair inside this chunk,
+     * sorted ascending by tick. `x` shares the [barXOffsets]
+     * coordinate frame (scaled CSS px). Use for tick-driven playhead
+     * placement: bracket the audio tick in this list and interpolate
+     * piecewise-linearly between neighbours. Gplayer's beat positions
+     * are log-spring-distributed inside each bar, so a linear sweep
+     * across `barWidth` drifts from engraved noteheads on sparse
+     * rhythms; using actual beat positions across the whole chunk
+     * removes that drift *and* eliminates the bar-boundary "teleport"
+     * a per-bar model produces (the first beat of a bar engraves a
+     * few px right of the bar line). Empty when no beats are present.
+     */
+    val beatXOffsets: List<Pair<Double, Float>> = emptyList(),
 )
 
 /** Result of a full-score raster render. */
@@ -85,6 +99,9 @@ public data class ScoreRasterChunkLayout(
     /** Chunk's y position within the full strip, in logical CSS px. */
     val yLogicalPx: Int,
     val barXOffsets: Map<Int, Float>,
+    /** Every beat's `(absoluteTick, x)` pair inside this chunk, sorted
+     *  by tick. See [ScoreRasterChunk.beatXOffsets]. */
+    val beatXOffsets: List<Pair<Double, Float>> = emptyList(),
     internal val resultId: String,
 )
 
@@ -158,6 +175,9 @@ public class ScoreRasterRenderer(
                 val barOffsets: Map<Int, Float> = args.barXOffsets
                     ?.mapValues { it.value.toFloat() }
                     ?: emptyMap()
+                val beatOffsets: List<Pair<Double, Float>> = args.beatXOffsets
+                    ?.map { it[0] to it[1].toFloat() }
+                    ?: emptyList()
                 chunks += ScoreRasterChunk(
                     pixels = partial.pixels,
                     pixelsWidth = partial.pixelsWidth,
@@ -167,6 +187,7 @@ public class ScoreRasterRenderer(
                     firstBarIndex = args.firstMasterBarIndex.toInt(),
                     lastBarIndex = args.lastMasterBarIndex.toInt(),
                     barXOffsets = barOffsets,
+                    beatXOffsets = beatOffsets,
                 )
             }
             renderer.renderFinished.on { args: RenderFinishedEventArgs ->
@@ -242,6 +263,9 @@ public class ScoreRasterRenderer(
                 val barOffsets: Map<Int, Float> = args.barXOffsets
                     ?.mapValues { it.value.toFloat() }
                     ?: emptyMap()
+                val beatOffsets: List<Pair<Double, Float>> = args.beatXOffsets
+                    ?.map { it[0] to it[1].toFloat() }
+                    ?: emptyList()
                 layouts += ScoreRasterChunkLayout(
                     index = layouts.size,
                     firstBarIndex = args.firstMasterBarIndex.toInt(),
@@ -253,6 +277,7 @@ public class ScoreRasterRenderer(
                     xLogicalPx = args.x.toInt(),
                     yLogicalPx = args.y.toInt(),
                     barXOffsets = barOffsets,
+                    beatXOffsets = beatOffsets,
                     resultId = args.id,
                 )
             }
@@ -358,6 +383,7 @@ public class ScoreRasterLazyHandle internal constructor(
                         firstBarIndex = layout.firstBarIndex,
                         lastBarIndex = layout.lastBarIndex,
                         barXOffsets = layout.barXOffsets,
+                        beatXOffsets = layout.beatXOffsets,
                     )
                 }
             }

@@ -416,12 +416,60 @@ internal abstract class VerticalLayoutBase: com.omnifret.gplayer.rendering.layou
         // units with args.width (which registerPartial scales below).
         val displayScale: Double = this.renderer.settings.display.scale
         val offsets = HashMap<Int, Double>()
+        val beatOffsets = ArrayList<DoubleArray>()
         val firstIdx: Int = system.firstBarIndex.toInt()
         val lastIdx: Int = system.lastBarIndex.toInt()
+        val staffId: String? = if (system.allStaves.length > 0)
+            system.allStaves[(0).toInt()].staffId else null
+        val track0 = if (this.renderer.tracks!!.length > 0)
+            this.renderer.tracks!![(0).toInt()] else null
         for (i in firstIdx..lastIdx) {
             offsets[i] = system.getBarX(i.toDouble()) * displayScale
+
+            // Per-beat offsets — keyed by absolute tick across the whole
+            // system. See RenderFinishedEventArgs.beatXOffsets for the
+            // rationale. Use `OnNotes` so the engraved x lands on the
+            // notehead at audio attack time.
+            if (staffId != null && track0 != null) {
+                val bar = track0.staves[(0).toInt()].bars[(i).toInt()]
+                val barRenderer = this.getRendererForBar(staffId, bar)
+                if (barRenderer != null && bar.voices.length > 0) {
+                    val voice = bar.voices[(0).toInt()]
+                    for (bi in 0 until voice.beats.length.toInt()) {
+                        val beat = voice.beats[(bi).toInt()]
+                        val tick = beat.absoluteDisplayStart
+                        val beatLocalX = barRenderer.getBeatX(
+                            beat,
+                            com.omnifret.gplayer.rendering.BeatXPosition.OnNotes,
+                            false,
+                        )
+                        // barRenderer.x is the bar's local x in the
+                        // system's frame; getBeatX returns x relative
+                        // to the bar's own origin (includes the
+                        // bar's beatGlyphsStart offset). The chunk
+                        // canvas frame matches the system frame in
+                        // wrapped mode, so we add the two directly.
+                        val beatCanvasX = barRenderer.x + beatLocalX
+                        beatOffsets.add(doubleArrayOf(tick, beatCanvasX * displayScale))
+                    }
+                }
+            }
+        }
+        beatOffsets.sortBy { it[(0).toInt()] }
+        // Trailing anchor at the chunk's right edge so the playhead
+        // glides toward the end of the row during the last note's
+        // duration instead of parking at the last engraved beat (which
+        // produced a visible "end-of-row lag" while audio finished the
+        // tail of the row's last beat). x = chunk width; tick = end
+        // of the last bar's playback.
+        if (track0 != null && firstIdx <= lastIdx) {
+            val lastBar = track0.staves[(0).toInt()].bars[(lastIdx).toInt()]
+            val lastBarEndTick = lastBar.masterBar.start +
+                lastBar.masterBar.calculateDuration(true)
+            beatOffsets.add(doubleArrayOf(lastBarEndTick, args.width))
         }
         args.barXOffsets = offsets
+        args.beatXOffsets = beatOffsets
         this.registerPartial(args, fun(canvas: com.omnifret.gplayer.platform.ICanvas): Unit{
             this.renderer.canvas!!.color = this.renderer.settings.display.resources.mainGlyphColor
             this.renderer.canvas!!.textAlign = com.omnifret.gplayer.platform.TextAlign.Left
