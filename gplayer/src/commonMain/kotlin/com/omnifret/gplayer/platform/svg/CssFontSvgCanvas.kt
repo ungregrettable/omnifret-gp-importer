@@ -58,15 +58,15 @@ internal class CssFontSvgCanvas: com.omnifret.gplayer.platform.svg.SvgCanvas
     /**
      */
     public override fun fillMusicFontSymbols(x: Double, y: Double, relativeScale: Double, symbols: com.omnifret.gplayer.collections.List<com.omnifret.gplayer.model.MusicFontSymbol>, centerAtPosition: Boolean?): Unit{
-        var s: String = ""
+        var s: StringBuilder = StringBuilder()
         for (symbol in symbols)
         {
             if (symbol != com.omnifret.gplayer.model.MusicFontSymbol.None)
             {
-                s += """&#${(symbol).toTemplate()};"""
+                s.append("""&#${(symbol).toTemplate()};""")
             }
         }
-        this._fillMusicFontSymbolText(x, y, relativeScale, s, centerAtPosition)
+        this._fillMusicFontSymbolText(x, y, relativeScale, s.toString(), centerAtPosition)
     }
     
     /**
@@ -76,28 +76,27 @@ internal class CssFontSvgCanvas: com.omnifret.gplayer.platform.svg.SvgCanvas
         var paramy = y
         paramx *= this.scale
         paramy *= this.scale
-        this.buffer += """<g transform="translate(${(paramx).toTemplate()} ${(paramy).toTemplate()})" class="at" ><text"""
+        this.buffer.append("""<g transform="translate(${(paramx).toTemplate()} ${(paramy).toTemplate()})" class="at" ><text""")
         var scale: Double = this.scale * relativeScale
         if (scale != 1.0)
         {
-            this.buffer += """ style="font-size: ${(scale * (100.0).toDouble()).toTemplate()}%; stroke:none""""
+            this.buffer.append(""" style="font-size: ${(scale * (100.0).toDouble()).toTemplate()}%; stroke:none"""")
         }
         else 
         {
-            this.buffer += " style=\"stroke:none\""
+            this.buffer.append(" style=\"stroke:none\"")
         }
         if (this.color.rgba != "#000000")
         {
-            this.buffer += """ fill="${(this.color.rgba).toTemplate()}""""
+            this.buffer.append(""" fill="${(this.color.rgba).toTemplate()}"""")
         }
         if (com.omnifret.gplayer.core.TypeHelper.isTruthy(com.omnifret.gplayer.core.TypeHelper.isTruthy(centerAtPosition)))
         {
-            this.buffer += """ text-anchor="${(this.getSvgTextAlignment(com.omnifret.gplayer.platform.TextAlign.Center)).toTemplate()}""""
+            this.buffer.append(""" text-anchor="${(this.getSvgTextAlignment(com.omnifret.gplayer.platform.TextAlign.Center)).toTemplate()}"""")
         }
-        this.buffer += """>${(symbols).toTemplate()}</text></g>"""
+        this.buffer.append(""">${(symbols).toTemplate()}</text></g>""")
     }
     
     public constructor()
     : super()
 }
-

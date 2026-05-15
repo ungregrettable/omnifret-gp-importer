@@ -159,10 +159,11 @@ public class ScoreRasterRenderer(
             ComposeRasterCanvas(musicFontBytes, pixelScale)
         }
         Environment.renderEngines.set(engineName, factory)
+        var renderer: ScoreRenderer? = null
         try {
             resolvedSettings.core.engine = engineName
 
-            val renderer = ScoreRenderer(resolvedSettings)
+            renderer = ScoreRenderer(resolvedSettings)
             renderer.width = widthPx
 
             val chunks = mutableListOf<ScoreRasterChunk>()
@@ -205,6 +206,7 @@ public class ScoreRasterRenderer(
                 chunks = chunks.toList(),
             )
         } finally {
+            renderer?.destroy()
             // Best-effort cleanup. If the consumer caught an exception
             // and re-renders, leftover unique-named entries don't cause
             // correctness issues but they do leak memory in the global
@@ -249,17 +251,19 @@ public class ScoreRasterRenderer(
         Environment.renderEngines.set(engineName, factory)
 
         var ownsEngine = true
+        var renderer: ScoreRenderer? = null
         try {
             resolvedSettings.core.engine = engineName
-            val renderer = ScoreRenderer(resolvedSettings)
-            renderer.width = widthPx
+            val activeRenderer = ScoreRenderer(resolvedSettings)
+            renderer = activeRenderer
+            activeRenderer.width = widthPx
 
             val layouts = mutableListOf<ScoreRasterChunkLayout>()
             var totalW = 0.0
             var totalH = 0.0
             var caughtError: Throwable? = null
 
-            renderer.partialLayoutFinished.on { args: RenderFinishedEventArgs ->
+            activeRenderer.partialLayoutFinished.on { args: RenderFinishedEventArgs ->
                 val barOffsets: Map<Int, Float> = args.barXOffsets
                     ?.mapValues { it.value.toFloat() }
                     ?: emptyMap()
@@ -281,17 +285,17 @@ public class ScoreRasterRenderer(
                     resultId = args.id,
                 )
             }
-            renderer.renderFinished.on { args: RenderFinishedEventArgs ->
+            activeRenderer.renderFinished.on { args: RenderFinishedEventArgs ->
                 totalW = args.totalWidth
                 totalH = args.totalHeight
             }
-            renderer.error.on { e -> caughtError = e }
+            activeRenderer.error.on { e -> caughtError = e }
 
-            renderer.renderScore(score, resolvedTrackIndexes(), null)
+            activeRenderer.renderScore(score, resolvedTrackIndexes(), null)
             caughtError?.let { throw it }
 
             val handle = ScoreRasterLazyHandle(
-                renderer = renderer,
+                renderer = activeRenderer,
                 engineName = engineName,
                 pixelScale = pixelScale,
                 totalWidthPx = (totalW * pixelScale).toInt(),
@@ -302,7 +306,10 @@ public class ScoreRasterRenderer(
             ownsEngine = false
             return handle
         } finally {
-            if (ownsEngine) Environment.renderEngines.delete(engineName)
+            if (ownsEngine) {
+                renderer?.destroy()
+                Environment.renderEngines.delete(engineName)
+            }
         }
     }
 
@@ -338,7 +345,7 @@ public class ScoreRasterRenderer(
  */
 @OptIn(kotlin.contracts.ExperimentalContracts::class, kotlin.ExperimentalUnsignedTypes::class)
 public class ScoreRasterLazyHandle internal constructor(
-    private val renderer: ScoreRenderer,
+    private var renderer: ScoreRenderer?,
     private val engineName: String,
     private val pixelScale: Double,
     public val totalWidthPx: Int,
@@ -360,7 +367,8 @@ public class ScoreRasterLazyHandle internal constructor(
      * single-threaded.
      */
     public fun renderChunk(index: Int): ScoreRasterChunk {
-        check(!closed) { "ScoreRasterLazyHandle has been closed" }
+        val activeRenderer = renderer
+        check(!closed && activeRenderer != null) { "ScoreRasterLazyHandle has been closed" }
         require(index in chunks.indices) {
             "chunk index $index out of range ${chunks.indices}"
         }
@@ -389,16 +397,16 @@ public class ScoreRasterLazyHandle internal constructor(
             }
         }
         val errorListener: (Throwable) -> Unit = { caughtError = it }
-        renderer.partialRenderFinished.on(listener)
-        renderer.error.on(errorListener)
+        activeRenderer.partialRenderFinished.on(listener)
+        activeRenderer.error.on(errorListener)
         try {
-            renderer.renderResult(layout.resultId)
+            activeRenderer.renderResult(layout.resultId)
             caughtError?.let { throw it }
             return captured
                 ?: error("No partialRenderFinished event for resultId=${layout.resultId}")
         } finally {
-            renderer.partialRenderFinished.off(listener)
-            renderer.error.off(errorListener)
+            activeRenderer.partialRenderFinished.off(listener)
+            activeRenderer.error.off(errorListener)
         }
     }
 
@@ -406,9 +414,7 @@ public class ScoreRasterLazyHandle internal constructor(
         if (closed) return
         closed = true
         Environment.renderEngines.delete(engineName)
-        // The renderer holds a canvas + layout state. We can't proactively
-        // null fields on the public ScoreRenderer, but dropping our
-        // reference + the engine entry is enough — GC reclaims the rest
-        // once the consumer drops its handle reference.
+        renderer?.destroy()
+        renderer = null
     }
 }

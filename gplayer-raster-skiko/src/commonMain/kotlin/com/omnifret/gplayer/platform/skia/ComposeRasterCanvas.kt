@@ -97,6 +97,8 @@ internal class ComposeRasterCanvas(
         val bmp = image ?: return null
         val pixels = IntArray(bmp.width * bmp.height)
         bmp.readPixels(pixels)
+        image = null
+        canvas = null
         return RasterPartial(pixels, bmp.width, bmp.height)
     }
 
@@ -179,35 +181,32 @@ internal class ComposeRasterCanvas(
     override fun fillCircle(x: Double, y: Double, radius: Double) {
         val c = canvas ?: return
         paint.style = PaintingStyle.Fill
-        // Compose has no drawCircle on Canvas directly; use a path.
-        val circlePath = Path().apply {
-            addOval(
-                androidx.compose.ui.geometry.Rect(
-                    left = (x - radius).toFloat(),
-                    top = (y - radius).toFloat(),
-                    right = (x + radius).toFloat(),
-                    bottom = (y + radius).toFloat(),
-                ),
-            )
-        }
-        c.drawPath(circlePath, paint)
+        path.reset()
+        path.addOval(
+            androidx.compose.ui.geometry.Rect(
+                left = (x - radius).toFloat(),
+                top = (y - radius).toFloat(),
+                right = (x + radius).toFloat(),
+                bottom = (y + radius).toFloat(),
+            ),
+        )
+        c.drawPath(path, paint)
     }
 
     override fun strokeCircle(x: Double, y: Double, radius: Double) {
         val c = canvas ?: return
         paint.style = PaintingStyle.Stroke
         paint.strokeWidth = lineWidth.toFloat()
-        val circlePath = Path().apply {
-            addOval(
-                androidx.compose.ui.geometry.Rect(
-                    left = (x - radius).toFloat(),
-                    top = (y - radius).toFloat(),
-                    right = (x + radius).toFloat(),
-                    bottom = (y + radius).toFloat(),
-                ),
-            )
-        }
-        c.drawPath(circlePath, paint)
+        path.reset()
+        path.addOval(
+            androidx.compose.ui.geometry.Rect(
+                left = (x - radius).toFloat(),
+                top = (y - radius).toFloat(),
+                right = (x + radius).toFloat(),
+                bottom = (y + radius).toFloat(),
+            ),
+        )
+        c.drawPath(path, paint)
     }
 
     // ---- Text

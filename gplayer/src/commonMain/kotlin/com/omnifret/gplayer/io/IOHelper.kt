@@ -185,21 +185,21 @@ public class IOHelper
          */
         @kotlin.jvm.JvmStatic
         public fun read8BitString(input: com.omnifret.gplayer.io.IReadable): String{
-            var s: String = ""
+            var s: StringBuilder = StringBuilder()
             var c: Double = input.readByte()
             while (c != 0.0)
             {
-                s += com.omnifret.gplayer.core.ecmaScript.CoreString.fromCharCode(c)
+                s.append(com.omnifret.gplayer.core.ecmaScript.CoreString.fromCharCode(c))
                 c = input.readByte()
             }
-            return s
+            return s.toString()
         }
         
         /**
          */
         @kotlin.jvm.JvmStatic
         public fun read8BitStringLength(input: com.omnifret.gplayer.io.IReadable, length: Double): String{
-            var s: String = ""
+            var s: StringBuilder = StringBuilder()
             var z: Double = -1.0
             if (true) {
                 var i: Double = 0.0
@@ -210,11 +210,11 @@ public class IOHelper
                     {
                         z = i
                     }
-                    s += com.omnifret.gplayer.core.ecmaScript.CoreString.fromCharCode(c)
+                    s.append(com.omnifret.gplayer.core.ecmaScript.CoreString.fromCharCode(c))
                     i++
                 }
             }
-            var t: String = s
+            var t: String = s.toString()
             if (z >= 0)
             {
                 return t.substr(0.0, z)
@@ -385,4 +385,3 @@ public class IOHelper
     }
     public constructor()
 }
-

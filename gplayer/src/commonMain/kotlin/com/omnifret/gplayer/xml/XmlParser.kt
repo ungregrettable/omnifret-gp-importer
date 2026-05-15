@@ -147,7 +147,7 @@ internal class XmlParser
             var state: com.omnifret.gplayer.xml.XmlState = com.omnifret.gplayer.xml.XmlState.Begin
             var next: com.omnifret.gplayer.xml.XmlState = com.omnifret.gplayer.xml.XmlState.Begin
             var start: Double = 0.0
-            var buf: String = ""
+            var buf: StringBuilder = StringBuilder()
             var escapeNext: com.omnifret.gplayer.xml.XmlState = com.omnifret.gplayer.xml.XmlState.Begin
             var xml: com.omnifret.gplayer.xml.XmlNode? = null
             var aname: String? = null
@@ -193,18 +193,18 @@ internal class XmlParser
                     {
                         if (c == com.omnifret.gplayer.xml.XmlParser.CharCodeLowerThan)
                         {
-                            buf += str.substr(start, paramp - start)
+                            buf.append(str.substr(start, paramp - start))
                             var child: com.omnifret.gplayer.xml.XmlNode = com.omnifret.gplayer.xml.XmlNode()
                             child.nodeType = com.omnifret.gplayer.xml.XmlNodeType.Text
-                            child.value = buf
-                            buf = ""
+                            child.value = buf.toString()
+                            buf.setLength(0)
                             parent.addChild(child)
                             state = com.omnifret.gplayer.xml.XmlState.IgnoreSpaces
                             next = com.omnifret.gplayer.xml.XmlState.BeginNode
                         }
                         else if (c == com.omnifret.gplayer.xml.XmlParser.CharCodeAmp)
                         {
-                            buf += str.substr(start, paramp - start)
+                            buf.append(str.substr(start, paramp - start))
                             state = com.omnifret.gplayer.xml.XmlState.Escape
                             escapeNext = com.omnifret.gplayer.xml.XmlState.Pcdata
                             start = paramp + 1.0
@@ -360,7 +360,7 @@ internal class XmlParser
                         {
                             com.omnifret.gplayer.xml.XmlParser.CharCodeDoubleQuote, com.omnifret.gplayer.xml.XmlParser.CharCodeSingleQuote -> 
                             {
-                                buf = ""
+                                buf.setLength(0)
                                 state = com.omnifret.gplayer.xml.XmlState.AttribVal
                                 start = paramp + 1.0
                                 attrValQuote = c
@@ -374,7 +374,7 @@ internal class XmlParser
                         {
                             com.omnifret.gplayer.xml.XmlParser.CharCodeAmp -> 
                             {
-                                buf += str.substr(start, paramp - start)
+                                buf.append(str.substr(start, paramp - start))
                                 state = com.omnifret.gplayer.xml.XmlState.Escape
                                 escapeNext = com.omnifret.gplayer.xml.XmlState.AttribVal
                                 start = paramp + 1.0
@@ -383,9 +383,9 @@ internal class XmlParser
                             {
                                 if (c == attrValQuote)
                                 {
-                                    buf += str.substr(start, paramp - start)
-                                    var value: String = buf
-                                    buf = ""
+                                    buf.append(str.substr(start, paramp - start))
+                                    var value: String = buf.toString()
+                                    buf.setLength(0)
                                     xml!!.attributes.set(aname!!, value)
                                     state = com.omnifret.gplayer.xml.XmlState.IgnoreSpaces
                                     next = com.omnifret.gplayer.xml.XmlState.Body
@@ -488,23 +488,23 @@ internal class XmlParser
                             if (s.charCodeAt(0.0) == com.omnifret.gplayer.xml.XmlParser.CharCodeSharp)
                             {
                                 var code: Double = if(s.charCodeAt(1.0) == com.omnifret.gplayer.xml.XmlParser.CharCodeLowerX)  com.omnifret.gplayer.core.ecmaScript.Number.parseInt("""0${(s.substr(1.0, s.length.toDouble() - (1.0).toDouble())).toTemplate()}""", 10.0) else com.omnifret.gplayer.core.ecmaScript.Number.parseInt(s.substr(1.0, s.length.toDouble() - (1.0).toDouble()), 10.0)
-                                buf += com.omnifret.gplayer.core.ecmaScript.CoreString.fromCharCode(code)
+                                buf.append(com.omnifret.gplayer.core.ecmaScript.CoreString.fromCharCode(code))
                             }
                             else if (com.omnifret.gplayer.xml.XmlParser._escapes.has(s))
                             {
-                                buf += com.omnifret.gplayer.xml.XmlParser._escapes.get(s)
+                                buf.append(com.omnifret.gplayer.xml.XmlParser._escapes.get(s))
                             }
                             else 
                             {
-                                buf += """&${(s).toTemplate()};"""?.toString()
+                                buf.append("""&${(s).toTemplate()};"""?.toString())
                             }
                             start = paramp + 1.0
                             state = escapeNext
                         }
                         else if (!com.omnifret.gplayer.xml.XmlParser._isValidChar(c) && c != com.omnifret.gplayer.xml.XmlParser.CharCodeSharp)
                         {
-                            buf += "&"
-                            buf += str.substr(start, paramp - start)
+                            buf.append("&")
+                            buf.append(str.substr(start, paramp - start))
                             paramp--
                             start = paramp + 1.0
                             state = escapeNext
@@ -523,21 +523,21 @@ internal class XmlParser
             {
                 if (paramp != start)
                 {
-                    buf += str.substr(start, paramp - start)
+                    buf.append(str.substr(start, paramp - start))
                     var node: com.omnifret.gplayer.xml.XmlNode = com.omnifret.gplayer.xml.XmlNode()
                     node.nodeType = com.omnifret.gplayer.xml.XmlNodeType.Text
-                    node.value = buf
+                    node.value = buf.toString()
                     parent.addChild(node)
                 }
                 return paramp
             }
             if (state == com.omnifret.gplayer.xml.XmlState.Escape && escapeNext == com.omnifret.gplayer.xml.XmlState.Pcdata)
             {
-                buf += "&"
-                buf += str.substr(start, paramp - start)
+                buf.append("&")
+                buf.append(str.substr(start, paramp - start))
                 var node: com.omnifret.gplayer.xml.XmlNode = com.omnifret.gplayer.xml.XmlNode()
                 node.nodeType = com.omnifret.gplayer.xml.XmlNodeType.Text
-                node.value = buf
+                node.value = buf.toString()
                 parent.addChild(node)
                 return paramp
             }
@@ -603,4 +603,3 @@ internal enum class XmlState(override val value: Int): com.omnifret.gplayer.core
         }
     }
 }
-

@@ -153,12 +153,12 @@ internal open class XmlNode
             {
                 return this.firstElement!!.innerText
             }
-            var txt: String = ""
+            var txt: StringBuilder = StringBuilder()
             for (c in this.childNodes)
             {
-                txt += c.innerText?.toString()
+                txt.append(c.innerText?.toString())
             }
-            var s: String = txt
+            var s: String = txt.toString()
             return s.trim()
         }
         return this.value ?: ""
@@ -210,4 +210,3 @@ internal enum class XmlNodeType(override val value: Int): com.omnifret.gplayer.c
         }
     }
 }
-

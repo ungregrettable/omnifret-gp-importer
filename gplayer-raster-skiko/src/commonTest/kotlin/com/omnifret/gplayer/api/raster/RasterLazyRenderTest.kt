@@ -12,6 +12,7 @@ package com.omnifret.gplayer.api.raster
 
 import com.omnifret.gplayer.raster.test.bravuraBytes
 import com.omnifret.gplayer.raster.test.parseRasterFixture
+import com.omnifret.gplayer.Environment
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFails
@@ -226,5 +227,23 @@ class RasterLazyRenderTest {
         } finally {
             lazy.close()
         }
+    }
+
+    @Test
+    fun eager_render_leaves_render_engine_registry_size_unchanged() {
+        val score = parseRasterFixture("guitarpro5/notes.gp5")
+        val before = Environment.renderEngines.size
+        ScoreRasterRenderer(score, bravuraBytes).render()
+        assertEquals(before, Environment.renderEngines.size)
+    }
+
+    @Test
+    fun lazy_close_removes_render_engine_registry_entry() {
+        val score = parseRasterFixture("guitarpro5/notes.gp5")
+        val before = Environment.renderEngines.size
+        val lazy = ScoreRasterRenderer(score, bravuraBytes).openLazy()
+        assertEquals(before + 1.0, Environment.renderEngines.size)
+        lazy.close()
+        assertEquals(before, Environment.renderEngines.size)
     }
 }

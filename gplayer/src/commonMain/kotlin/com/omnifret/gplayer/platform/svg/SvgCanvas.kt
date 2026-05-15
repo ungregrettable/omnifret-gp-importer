@@ -45,10 +45,10 @@ import com.omnifret.gplayer.core.*
 @kotlin.ExperimentalUnsignedTypes
 internal abstract class SvgCanvas: com.omnifret.gplayer.platform.ICanvas
 {
-    protected var buffer: String = ""
+    protected var buffer: StringBuilder = StringBuilder()
     
     
-    private var _currentPath: String = ""
+    private var _currentPath: StringBuilder = StringBuilder()
     
     private var _currentPathIsEmpty: Boolean = true
     
@@ -79,9 +79,10 @@ internal abstract class SvgCanvas: com.omnifret.gplayer.platform.ICanvas
      */
     public override fun beginRender(width: Double, height: Double): Unit{
         this.scale = this.settings.display.scale
-        this.buffer = """<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="${(((width).toInt() or 0).toDouble()).toTemplate()}px" height="${(((height).toInt() or 0).toDouble()).toTemplate()}px" class="at-surface-svg">
-"""
-        this._currentPath = ""
+        this.buffer.setLength(0)
+        this.buffer.append("""<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="${(((width).toInt() or 0).toDouble()).toTemplate()}px" height="${(((height).toInt() or 0).toDouble()).toTemplate()}px" class="at-surface-svg">
+""")
+        this._currentPath.setLength(0)
         this._currentPathIsEmpty = true
         this.textBaseline = com.omnifret.gplayer.platform.TextBaseline.Top
     }
@@ -89,16 +90,16 @@ internal abstract class SvgCanvas: com.omnifret.gplayer.platform.ICanvas
     /**
      */
     public override fun beginGroup(identifier: String): Unit{
-        this.buffer += """<g class="${(identifier).toTemplate()}">"""
+        this.buffer.append("""<g class="${(identifier).toTemplate()}">""")
     }
     
     public override fun endGroup(): Unit{
-        this.buffer += "</g>"
+        this.buffer.append("</g>")
     }
     
     public override fun endRender(): Any?{
-        this.buffer += "</svg>"
-        return this.buffer
+        this.buffer.append("</svg>")
+        return this.buffer.toString()
     }
     
     /**
@@ -106,8 +107,8 @@ internal abstract class SvgCanvas: com.omnifret.gplayer.platform.ICanvas
     public override fun fillRect(x: Double, y: Double, w: Double, h: Double): Unit{
         if (w > 0)
         {
-            this.buffer += """<rect x="${(x * this.scale).toTemplate()}" y="${(y * this.scale).toTemplate()}" width="${(w * this.scale).toTemplate()}" height="${(h * this.scale).toTemplate()}" fill="${(this.color.rgba).toTemplate()}" />
-"""
+            this.buffer.append("""<rect x="${(x * this.scale).toTemplate()}" y="${(y * this.scale).toTemplate()}" width="${(w * this.scale).toTemplate()}" height="${(h * this.scale).toTemplate()}" fill="${(this.color.rgba).toTemplate()}" />
+""")
         }
     }
     
@@ -115,39 +116,39 @@ internal abstract class SvgCanvas: com.omnifret.gplayer.platform.ICanvas
      */
     public override fun strokeRect(x: Double, y: Double, w: Double, h: Double): Unit{
         var blurOffset: Double = if((this.lineWidth * this.scale) % 2.0 == 0.0)  0.0 else 0.5
-        this.buffer += """<rect x="${(x * this.scale + blurOffset).toTemplate()}" y="${(y * this.scale + blurOffset).toTemplate()}" width="${(w * this.scale).toTemplate()}" height="${(h * this.scale).toTemplate()}" stroke="${(this.color.rgba).toTemplate()}""""
+        this.buffer.append("""<rect x="${(x * this.scale + blurOffset).toTemplate()}" y="${(y * this.scale + blurOffset).toTemplate()}" width="${(w * this.scale).toTemplate()}" height="${(h * this.scale).toTemplate()}" stroke="${(this.color.rgba).toTemplate()}"""")
         if (this.lineWidth != 1.0)
         {
-            this.buffer += """ stroke-width="${(this.lineWidth * this.scale).toTemplate()}""""
+            this.buffer.append(""" stroke-width="${(this.lineWidth * this.scale).toTemplate()}"""")
         }
-        this.buffer += " fill=\"transparent\" />\n"
+        this.buffer.append(" fill=\"transparent\" />\n")
     }
     
     public override fun beginPath(): Unit{
     }
     
     public override fun closePath(): Unit{
-        this._currentPath += " z"
+        this._currentPath.append(" z")
     }
     
     /**
      */
     public override fun moveTo(x: Double, y: Double): Unit{
-        this._currentPath += """ M${(x * this.scale).toTemplate()},${(y * this.scale).toTemplate()}"""
+        this._currentPath.append(""" M${(x * this.scale).toTemplate()},${(y * this.scale).toTemplate()}""")
     }
     
     /**
      */
     public override fun lineTo(x: Double, y: Double): Unit{
         this._currentPathIsEmpty = false
-        this._currentPath += """ L${(x * this.scale).toTemplate()},${(y * this.scale).toTemplate()}"""
+        this._currentPath.append(""" L${(x * this.scale).toTemplate()},${(y * this.scale).toTemplate()}""")
     }
     
     /**
      */
     public override fun quadraticCurveTo(cpx: Double, cpy: Double, x: Double, y: Double): Unit{
         this._currentPathIsEmpty = false
-        this._currentPath += """ Q${(cpx * this.scale).toTemplate()},${(cpy * this.scale).toTemplate()},${(x * this.scale).toTemplate()},${(y * this.scale).toTemplate()}"""
+        this._currentPath.append(""" Q${(cpx * this.scale).toTemplate()},${(cpy * this.scale).toTemplate()},${(x * this.scale).toTemplate()},${(y * this.scale).toTemplate()}""")
     }
     
     /**
@@ -157,9 +158,9 @@ internal abstract class SvgCanvas: com.omnifret.gplayer.platform.ICanvas
     cp2X: Double, 
     cp2Y: Double, 
     x: Double, 
-    y: Double): Unit{
+        y: Double): Unit{
         this._currentPathIsEmpty = false
-        this._currentPath += """ C${(cp1X * this.scale).toTemplate()},${(cp1Y * this.scale).toTemplate()},${(cp2X * this.scale).toTemplate()},${(cp2Y * this.scale).toTemplate()},${(x * this.scale).toTemplate()},${(y * this.scale).toTemplate()}"""
+        this._currentPath.append(""" C${(cp1X * this.scale).toTemplate()},${(cp1Y * this.scale).toTemplate()},${(cp2X * this.scale).toTemplate()},${(cp2Y * this.scale).toTemplate()},${(x * this.scale).toTemplate()},${(y * this.scale).toTemplate()}""")
     }
     
     /**
@@ -172,7 +173,7 @@ internal abstract class SvgCanvas: com.omnifret.gplayer.platform.ICanvas
         paramx *= this.scale
         paramy *= this.scale
         paramradius *= this.scale
-        this._currentPath += """ M${(paramx - paramradius).toTemplate()},${(paramy).toTemplate()} A1,1 0 0,0 ${(paramx + paramradius).toTemplate()},${(paramy).toTemplate()} A1,1 0 0,0 ${(paramx - paramradius).toTemplate()},${(paramy).toTemplate()} z"""
+        this._currentPath.append(""" M${(paramx - paramradius).toTemplate()},${(paramy).toTemplate()} A1,1 0 0,0 ${(paramx + paramradius).toTemplate()},${(paramy).toTemplate()} A1,1 0 0,0 ${(paramx - paramradius).toTemplate()},${(paramy).toTemplate()} z""")
         this.fill()
     }
     
@@ -186,36 +187,35 @@ internal abstract class SvgCanvas: com.omnifret.gplayer.platform.ICanvas
         paramx *= this.scale
         paramy *= this.scale
         paramradius *= this.scale
-        this._currentPath += """ M${(paramx - paramradius).toTemplate()},${(paramy).toTemplate()} A1,1 0 0,0 ${(paramx + paramradius).toTemplate()},${(paramy).toTemplate()} A1,1 0 0,0 ${(paramx - paramradius).toTemplate()},${(paramy).toTemplate()} z"""
+        this._currentPath.append(""" M${(paramx - paramradius).toTemplate()},${(paramy).toTemplate()} A1,1 0 0,0 ${(paramx + paramradius).toTemplate()},${(paramy).toTemplate()} A1,1 0 0,0 ${(paramx - paramradius).toTemplate()},${(paramy).toTemplate()} z""")
         this.stroke()
     }
     
     public override fun fill(): Unit{
         if (!this._currentPathIsEmpty)
         {
-            this.buffer += """<path d="${(this._currentPath).toTemplate()}""""
+            this.buffer.append("""<path d="${(this._currentPath).toTemplate()}"""")
             if (this.color.rgba != "#000000")
             {
-                this.buffer += """ fill="${(this.color.rgba).toTemplate()}""""
+                this.buffer.append(""" fill="${(this.color.rgba).toTemplate()}"""")
             }
-            this.buffer += " style=\"stroke: none\"/>"
+            this.buffer.append(" style=\"stroke: none\"/>")
         }
-        this._currentPath = ""
+        this._currentPath.setLength(0)
         this._currentPathIsEmpty = true
     }
     
     public override fun stroke(): Unit{
         if (!this._currentPathIsEmpty)
         {
-            var s: String = """<path d="${(this._currentPath).toTemplate()}" stroke="${(this.color.rgba).toTemplate()}""""
+            this.buffer.append("""<path d="${(this._currentPath).toTemplate()}" stroke="${(this.color.rgba).toTemplate()}"""")
             if (this.lineWidth != 1.0 || this.scale != 1.0)
             {
-                s += """ stroke-width="${(this.lineWidth * this.scale).toTemplate()}""""
+                this.buffer.append(""" stroke-width="${(this.lineWidth * this.scale).toTemplate()}"""")
             }
-            s += " style=\"fill: none\" />"
-            this.buffer += s
+            this.buffer.append(" style=\"fill: none\" />")
         }
-        this._currentPath = ""
+        this._currentPath.setLength(0)
         this._currentPathIsEmpty = true
     }
     
@@ -226,17 +226,16 @@ internal abstract class SvgCanvas: com.omnifret.gplayer.platform.ICanvas
         {
             return
         }
-        var s: String = """<text x="${(x * this.scale).toTemplate()}" y="${(y * this.scale).toTemplate()}" style='stroke: none; font:${(this.font.toCssString(this.settings.display.scale)).toTemplate()}; ${(this.getSvgBaseLine()).toTemplate()}'"""
+        this.buffer.append("""<text x="${(x * this.scale).toTemplate()}" y="${(y * this.scale).toTemplate()}" style='stroke: none; font:${(this.font.toCssString(this.settings.display.scale)).toTemplate()}; ${(this.getSvgBaseLine()).toTemplate()}'""")
         if (this.color.rgba != "#000000")
         {
-            s += """ fill="${(this.color.rgba).toTemplate()}""""
+            this.buffer.append(""" fill="${(this.color.rgba).toTemplate()}"""")
         }
         if (this.textAlign != com.omnifret.gplayer.platform.TextAlign.Left)
         {
-            s += """ text-anchor="${(this.getSvgTextAlignment(this.textAlign)).toTemplate()}""""
+            this.buffer.append(""" text-anchor="${(this.getSvgTextAlignment(this.textAlign)).toTemplate()}"""")
         }
-        s += """>${(com.omnifret.gplayer.platform.svg.SvgCanvas._escapeText(text)).toTemplate()}</text>"""
-        this.buffer += s
+        this.buffer.append(""">${(com.omnifret.gplayer.platform.svg.SvgCanvas._escapeText(text)).toTemplate()}</text>""")
     }
     
     /**
@@ -312,11 +311,11 @@ internal abstract class SvgCanvas: com.omnifret.gplayer.platform.ICanvas
     /**
      */
     public override fun beginRotate(centerX: Double, centerY: Double, angle: Double): Unit{
-        this.buffer += """<g transform="translate(${(centerX * this.scale).toTemplate()} ,${(centerY * this.scale).toTemplate()}) rotate( ${(angle).toTemplate()})">"""
+        this.buffer.append("""<g transform="translate(${(centerX * this.scale).toTemplate()} ,${(centerY * this.scale).toTemplate()}) rotate( ${(angle).toTemplate()})">""")
     }
     
     public override fun endRotate(): Unit{
-        this.buffer += "</g>"
+        this.buffer.append("</g>")
     }
     
     companion object{
@@ -324,10 +323,39 @@ internal abstract class SvgCanvas: com.omnifret.gplayer.platform.ICanvas
          */
         @kotlin.jvm.JvmStatic
         private fun _escapeText(text: String): String{
-            return text.replace(com.omnifret.gplayer.core.TypeHelper.createRegex("&", "g"), "&amp;").replace(com.omnifret.gplayer.core.TypeHelper.createRegex("\"", "g"), "&quot;").replace(com.omnifret.gplayer.core.TypeHelper.createRegex("'", "g"), "&#39;").replace(com.omnifret.gplayer.core.TypeHelper.createRegex("<", "g"), "&lt;").replace(com.omnifret.gplayer.core.TypeHelper.createRegex(">", "g"), "&gt;")
+            var needsEscape = false
+            scan@ for (ch in text)
+            {
+                when (ch)
+                {
+                    '&', '"', '\'', '<', '>' ->
+                    {
+                        needsEscape = true
+                        break@scan
+                    }
+                    else -> { }
+                }
+            }
+            if (!needsEscape)
+            {
+                return text
+            }
+            val escaped = StringBuilder(text.length + 16)
+            for (ch in text)
+            {
+                when (ch)
+                {
+                    '&' -> escaped.append("&amp;")
+                    '"' -> escaped.append("&quot;")
+                    '\'' -> escaped.append("&#39;")
+                    '<' -> escaped.append("&lt;")
+                    '>' -> escaped.append("&gt;")
+                    else -> escaped.append(ch)
+                }
+            }
+            return escaped.toString()
         }
         
     }
     public constructor()
 }
-
