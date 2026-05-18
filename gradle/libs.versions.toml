@@ -1,7 +1,7 @@
 [versions]
 # Mirror OmniFret's tooling so dependency conflicts are zero on the
 # consumer side. Bumping versions here means bumping in OmniFret too.
-agp = "9.2.0"
+agp = "9.2.1"
 kotlin = "2.3.21"
 coroutines = "1.8.1"
 # Match OmniFret's Compose Multiplatform version. The :gplayer-raster-skiko
