@@ -17,7 +17,7 @@ import kotlin.contracts.ExperimentalContracts
 // inside a JS Web Worker / Android background thread) are not supported
 // in the KMP port — the host app's coroutine scope is the integration
 // point. The other partial methods are simple delegates.
-@OptIn(ExperimentalContracts::class)
+@OptIn(ExperimentalContracts::class, kotlin.ExperimentalUnsignedTypes::class)
 internal class EnvironmentPartials {
     companion object {
         internal fun _createPlatformSpecificRenderEngines(

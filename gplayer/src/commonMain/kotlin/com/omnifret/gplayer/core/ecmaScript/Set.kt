@@ -10,7 +10,7 @@ public class Set<T> : Iterable<T> {
     }
 
     public val size: Double
-        get() = _storage.size.toDouble()
+        get() = _storage.size
 
     public constructor(values: Iterable<T>?) {
         _storage = ObjectBooleanMap()

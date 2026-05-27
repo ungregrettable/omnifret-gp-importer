@@ -6,6 +6,10 @@
 
 @file:Suppress(
     "KotlinRedundantDiagnosticSuppress",
+    "REDUNDANT_CALL_OF_CONVERSION_METHOD",
+    "UNNECESSARY_LATEINIT",
+    "CAST_NEVER_SUCCEEDS",
+    "SENSELESS_COMPARISON",
     "RedundantVisibilityModifier",
     "RedundantExplicitType",
     "RedundantUnitReturnType",

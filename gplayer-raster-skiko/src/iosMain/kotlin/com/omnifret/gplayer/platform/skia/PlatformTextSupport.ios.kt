@@ -11,7 +11,7 @@
 package com.omnifret.gplayer.platform.skia
 
 import androidx.compose.ui.graphics.Canvas
-import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.skiaCanvas
 import com.omnifret.gplayer.model.Color as GplayerColor
 import com.omnifret.gplayer.model.Font as GplayerFont
 import com.omnifret.gplayer.platform.TextAlign
@@ -58,7 +58,7 @@ internal actual class PlatformTextSupport actual constructor(musicFontBytes: Byt
         isMusicFont: Boolean,
     ) {
         if (text.isEmpty()) return
-        val nativeCanvas = canvas.nativeCanvas
+        val nativeCanvas = canvas.skiaCanvas
         val typeface = if (isMusicFont) musicTypeface else fallbackTypeface
         val skiaFont = SkiaFont(typeface, font.size.toFloat())
         val skiaPaint = SkiaPaint().apply {
